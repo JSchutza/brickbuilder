@@ -1,6 +1,7 @@
 const asyncHandler = require('express-async-handler');
 const User = require('../models/User');
 const generateToken = require('../utils/generateToken');
+const Build = require('../models/Build'); // Added missing import for Build
 
 // @desc    Register a new user
 // @route   POST /api/users
@@ -26,6 +27,7 @@ const registerUser = asyncHandler(async (req, res) => {
     res.status(201).json({
       _id: user._id,
       email: user.email,
+      subscription: user.subscription,
       token: generateToken(user._id)
     });
   } else {
@@ -48,6 +50,7 @@ const loginUser = asyncHandler(async (req, res) => {
     res.json({
       _id: user._id,
       email: user.email,
+      subscription: user.subscription,
       token: generateToken(user._id)
     });
   } else {
@@ -65,8 +68,27 @@ const getUserProfile = asyncHandler(async (req, res) => {
   if (user) {
     res.json({
       _id: user._id,
-      email: user.email
+      email: user.email,
+      subscription: user.subscription
     });
+  } else {
+    res.status(404);
+    throw new Error('User not found');
+  }
+});
+
+// @desc    Delete user account
+// @route   DELETE /api/users/profile
+// @access  Private
+const deleteUser = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id);
+
+  if (user) {
+    // Delete associated builds
+    await Build.deleteMany({ user: user._id });
+    
+    await user.deleteOne();
+    res.json({ message: 'User account deleted successfully' });
   } else {
     res.status(404);
     throw new Error('User not found');
@@ -76,5 +98,6 @@ const getUserProfile = asyncHandler(async (req, res) => {
 module.exports = {
   registerUser,
   loginUser,
-  getUserProfile
+  getUserProfile,
+  deleteUser
 }; 

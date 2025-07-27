@@ -12,6 +12,11 @@ const userSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true
+  },
+  subscription: {
+    type: String,
+    enum: ['none', 'basic', 'premium'],
+    default: 'none'
   }
 }, {
   timestamps: true

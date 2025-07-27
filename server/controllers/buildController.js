@@ -7,6 +7,11 @@ const Build = require('../models/Build');
 const createBuild = asyncHandler(async (req, res) => {
   const { name, blocks } = req.body;
 
+  if (req.user.subscription === 'none') {
+    res.status(403);
+    throw new Error('Subscription required to save new builds');
+  }
+
   const build = await Build.create({
     user: req.user._id,
     name,
